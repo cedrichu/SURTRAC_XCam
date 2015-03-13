@@ -9,7 +9,8 @@ def parse_XCamheader(s):
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect(('192.168.123.252', 20800))
 #client_socket.connect(('localhost', 9999))
-fi = open('ReqVerInfo', 'r')
+fi = open('StartLive', 'r')
+fo = open('log.txt', 'w')
 input_data = fi.readline()
 print input_data
 client_socket.send(input_data)
@@ -46,14 +47,14 @@ while 1:
                                 XML_message += data[:]
                                 rest_XML_size -= data_size
                                 data_size = 0
-        sv_index = XML_message.find(state_vector)
-        ts_index = XML_message.find(time_stamp)
-        if (sv_index != -1) and (ts_index != -1):
-                ts_index += len(time_stamp)
-                sv_index += len(state_vector)
-                print XML_message[ts_index:ts_index+17], XML_message[sv_index:sv_index+5]
+	    # sv_index = XML_message.find(state_vector)
+	    # ts_index = XML_message.find(time_stamp)
+	    # if (sv_index != -1) and (ts_index != -1):
+	    #         ts_index += len(time_stamp)
+	    #         sv_index += len(state_vector)
+	    #         print XML_message[ts_index:ts_index+17], XML_message[sv_index:sv_index+5]
 ##        else:
-##                print XML_message
+                fo.write(XML_message +'\n\n')
                                 
 
                 
