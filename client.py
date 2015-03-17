@@ -17,6 +17,7 @@ client_socket.send(input_data)
 
 state_vector = '<StateVector>'
 time_stamp = 'timestamp="'
+live_image = '<LiveImage>'
 buf_size = 512
 hsize = 4
 while 1:
@@ -47,6 +48,10 @@ while 1:
                                 XML_message += data[:]
                                 rest_XML_size -= data_size
                                 data_size = 0
+        lv_index = XML_message.find(live_image)
+        end_index = XML_message.find('</CTL>')
+        if (lv_index != -1):
+            fo.write(XML_message[lv_index:end_index]+'\n\n')
 	    # sv_index = XML_message.find(state_vector)
 	    # ts_index = XML_message.find(time_stamp)
 	    # if (sv_index != -1) and (ts_index != -1):
@@ -54,7 +59,7 @@ while 1:
 	    #         sv_index += len(state_vector)
 	    #         print XML_message[ts_index:ts_index+17], XML_message[sv_index:sv_index+5]
 ##        else:
-                fo.write(XML_message +'\n\n')
+##                fo.write(XML_message +'\n\n')
                                 
 
                 
