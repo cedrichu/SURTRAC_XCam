@@ -1,23 +1,23 @@
 import socket
-
-def parse_XCamheader(s):
-    size = 0
-    for x in range(0,4):
-        size += ord(s[x])*(16**(2*x))
-    return size 
+import numpy as np
+import cv2
+import base64
+import parse_XCam
+import sys
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect(('192.168.123.252', 20800))
-#client_socket.connect(('localhost', 9999))
-fi = open('StartLive', 'r')
-fo = open('log.txt', 'w')
-input_data = fi.readline()
-print input_data
-client_socket.send(input_data)
+print "start client..."
 
-state_vector = '<StateVector>'
-time_stamp = 'timestamp="'
-live_image = '<LiveImage>'
+
+fi = open('StartLive', 'r')
+live_image = open('live_image.txt', 'w')
+state_vector = open('state_vector.txt', 'w')
+
+input_data = fi.readline()
+client_socket.send(input_data)
+print 'send StartLive...'
+
 buf_size = 512
 hsize = 4
 while 1:
@@ -25,7 +25,7 @@ while 1:
     data_size = len(data)
     index = 0
     while data_size != 0:
-        XML_size =  parse_XCamheader(data[index:index+hsize])
+        XML_size =  parse_XCam.parse_XCamheader(data[index:index+hsize])
         data_size -= hsize
         index += hsize
         if data_size >= XML_size:
@@ -48,18 +48,22 @@ while 1:
                                 XML_message += data[:]
                                 rest_XML_size -= data_size
                                 data_size = 0
-        lv_index = XML_message.find(live_image)
-        end_index = XML_message.find('</CTL>')
-        if (lv_index != -1):
-            fo.write(XML_message[lv_index:end_index]+'\n\n')
-	    # sv_index = XML_message.find(state_vector)
-	    # ts_index = XML_message.find(time_stamp)
-	    # if (sv_index != -1) and (ts_index != -1):
-	    #         ts_index += len(time_stamp)
-	    #         sv_index += len(state_vector)
-	    #         print XML_message[ts_index:ts_index+17], XML_message[sv_index:sv_index+5]
-##        else:
-##                fo.write(XML_message +'\n\n')
+        
+        parsed_message = parse_XCam.parse_LiveImage(XML_message)
+        if(parsed_message != -1):
+            output_data = base64.b64decode(parsed_message)
+            array = np.frombuffer(output_data, dtype='uint8')
+            img = cv2.imdecode(array, 0)
+            cv2.imshow('XCam-p', img)
+            if cv2.waitKey(1) & 0xFF == ord('q'):
+                break
+            live_image.write(parsed_message)
+
+        parsed_message = parse_XCam.parse_StateVector(XML_message)
+        if(parsed_message != -1):
+            state_vector.write(parsed_message)
+        
+	    
                                 
 
                 
