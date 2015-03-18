@@ -1,9 +1,17 @@
+import numpy as np
+import cv2
+import base64
 
+fgbg = cv2.BackgroundSubtractorMOG()
 
 def parse_XCamheader(s):
     size = 0
     for x in range(0,4):
-        size += ord(s[x])*(16**(2*x))
+    	try:
+    		size += ord(s[x])*(16**(2*x))
+    	except IndexError:
+    		print "Oops!  That was no valid number."
+    		return -1
     return size 
 
 def parse_StateVector(s):
@@ -30,3 +38,14 @@ def parse_LiveImage(s):
 		return s[lv_index+6:end_index]+'\n\n'
 	else:
 		return -1
+
+
+def output_image(s):
+	output_data = base64.b64decode(s)
+	array = np.frombuffer(output_data, dtype='uint8')
+	img = cv2.imdecode(array, 0)
+	fgmask = fgbg.apply(img)
+	cv2.imshow('XCam-p', fgmask)
+	#cv2.imshow('XCam-p', img)
+    
+            

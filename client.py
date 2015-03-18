@@ -1,9 +1,7 @@
 import socket
-import numpy as np
-import cv2
-import base64
 import parse_XCam
 import sys
+import cv2
 
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect(('192.168.123.252', 20800))
@@ -26,6 +24,8 @@ while 1:
     index = 0
     while data_size != 0:
         XML_size =  parse_XCam.parse_XCamheader(data[index:index+hsize])
+        if XML_size == -1:
+            break
         data_size -= hsize
         index += hsize
         if data_size >= XML_size:
@@ -51,10 +51,7 @@ while 1:
         
         parsed_message = parse_XCam.parse_LiveImage(XML_message)
         if(parsed_message != -1):
-            output_data = base64.b64decode(parsed_message)
-            array = np.frombuffer(output_data, dtype='uint8')
-            img = cv2.imdecode(array, 0)
-            cv2.imshow('XCam-p', img)
+            parse_XCam.output_image(parsed_message)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
             live_image.write(parsed_message)
@@ -62,7 +59,7 @@ while 1:
         parsed_message = parse_XCam.parse_StateVector(XML_message)
         if(parsed_message != -1):
             state_vector.write(parsed_message)
-        
+            
 	    
                                 
 
