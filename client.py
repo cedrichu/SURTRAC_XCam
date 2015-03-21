@@ -2,18 +2,18 @@ import socket
 import parse_XCam
 import sys
 import cv2
-import loggin
+import logging
 
 
-logging.basicConfig(filename='debug.log',level=logging.DEBUG)
+logging.basicConfig(filename='debug.log',level=logging.INFO)
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect(('192.168.123.252', 20800))
 print "start client..."
 
 
 fi = open('StartLive', 'r')
-live_image = open('live_image.txt', 'w')
-state_vector = open('state_vector.txt', 'w')
+live_image = open('live_image.log', 'w')
+state_vector = open('state_vector.log', 'w')
 
 input_data = fi.readline()
 client_socket.send(input_data)
@@ -23,6 +23,7 @@ buf_size = 512
 hsize = 4
 residule_header = ''
 while 1:
+    client_socket.send(input_data)
     data = client_socket.recv(buf_size)
     
     if residule_header != '':
@@ -45,7 +46,7 @@ while 1:
                 index += XML_size
                 
                 if data_size < hsize and data_size > 0:
-                    logging.debug('residule 1 data_size: ' + data_size)
+                    logging.debug('residule 1 data_size: ' + str(data_size))
                     residule_header = data[index:]
                     data_size = 0
         else:
@@ -62,7 +63,7 @@ while 1:
                                 rest_XML_size = 0
                                 
                                 if data_size < hsize and data_size > 0:
-                                    logging.debug('residule 2 data_size: ' + data_size)
+                                    logging.debug('residule 2 data_size: ' + str(data_size))
                                     residule_header = data[index:]
                                     data_size = 0
 
@@ -72,6 +73,7 @@ while 1:
                                 data_size = 0
 
         logging.debug('parsed_message: '+XML_message)
+        
         parsed_message = parse_XCam.parse_LiveImage(XML_message)
         if(parsed_message != -1):
             parse_XCam.output_image(parsed_message)
