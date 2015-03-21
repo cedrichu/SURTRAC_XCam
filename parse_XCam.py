@@ -43,9 +43,8 @@ def parse_LiveImage(s):
 def output_image(s):
 	output_data = base64.b64decode(s)
 	array = np.frombuffer(output_data, dtype='uint8')
-	img = cv2.imdecode(array, 0)
-	fgmask = fgbg.apply(img)
-	cv2.imshow('XCam-p', fgmask)
-	#cv2.imshow('XCam-p', img)
+	img = cv2.imdecode(array, 1)
+	#img = fgbg.apply(img)
+	return img
     
             

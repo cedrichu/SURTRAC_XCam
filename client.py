@@ -6,13 +6,12 @@ import logging
 
 
 logging.basicConfig(filename='debug.log',level=logging.INFO)
+
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
 client_socket.connect(('192.168.123.252', 20800))
 print "start client..."
 
-
 fi = open('StartLive', 'r')
-live_image = open('live_image.log', 'w')
 state_vector = open('state_vector.log', 'w')
 
 input_data = fi.readline()
@@ -22,6 +21,9 @@ print 'send StartLive...'
 buf_size = 512
 hsize = 4
 residule_header = ''
+fourcc = cv2.cv.CV_FOURCC('D','I','V','X')
+output_video = cv2.VideoWriter('output_video.avi',fourcc, 10.0, (320, 240))
+
 while 1:
     client_socket.send(input_data)
     data = client_socket.recv(buf_size)
@@ -34,12 +36,13 @@ while 1:
     data_size = len(data)
     index = 0
     while data_size != 0:
+        
         XML_size =  parse_XCam.parse_XCamheader(data[index:index+hsize])
         if XML_size == -1:
             break
-        
         data_size -= hsize
         index += hsize
+
         if data_size >= XML_size:
                 XML_message = data[index:index+XML_size]
                 data_size -= XML_size
@@ -76,17 +79,21 @@ while 1:
         
         parsed_message = parse_XCam.parse_LiveImage(XML_message)
         if(parsed_message != -1):
-            parse_XCam.output_image(parsed_message)
+            img = parse_XCam.output_image(parsed_message)
+            output_video.write(img)
+            cv2.imshow('XCam-p', img)
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
-            live_image.write(parsed_message)
-
+       
         parsed_message = parse_XCam.parse_StateVector(XML_message)
         if(parsed_message != -1):
             state_vector.write(parsed_message)
-            
-	    
-                                
+
+
+
+print 'leave client...'
+video_write.release()
+cv2.destroyAllWindows()                      
 
                 
                 
