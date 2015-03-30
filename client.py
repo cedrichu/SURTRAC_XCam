@@ -13,6 +13,7 @@ print "start client..."
 
 fi = open('StartLive', 'r')
 state_vector = open('state_vector.log', 'w')
+image_file = open('image.log', 'w')
 
 input_data = fi.readline()
 client_socket.send(input_data)
@@ -79,7 +80,10 @@ while 1:
         
         parsed_message = parse_XCam.parse_LiveImage(XML_message)
         if(parsed_message != -1):
+            image_file.write(XML_message+'\n\n')
+            video_timestamp = parse_XCam.parse_TimeStamp(XML_message)
             img = parse_XCam.output_image(parsed_message)
+            cv2.putText(img,str(video_timestamp), (30,45), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255))
             output_video.write(img)
             cv2.imshow('XCam-p', img)
             if cv2.waitKey(1) & 0xFF == ord('q'):

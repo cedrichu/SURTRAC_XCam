@@ -16,19 +16,28 @@ def parse_XCamheader(s):
 
 def parse_StateVector(s):
 	state_vector = '<StateVector>'
-	time_stamp = 'timestamp="'
-	num_bits_timestamp = 17
 	num_bits_StateVector = 5
 
 	sv_index = s.find(state_vector)
-	ts_index = s.find(time_stamp)
+	ts_return = parse_TimeStamp(s)
 	
-	if (sv_index != -1) and (ts_index != -1):
-		ts_index += len(time_stamp)
+	if (sv_index != -1) and (ts_return != -1):
 		sv_index += len(state_vector)
-		return s[ts_index:ts_index+num_bits_timestamp]+' '+s[sv_index:sv_index+num_bits_StateVector]+'\n'
+		return ts_return+' '+s[sv_index:sv_index+num_bits_StateVector]+'\n'
 	else:
 		return -1
+
+def parse_TimeStamp(s):
+	time_stamp = 'timestamp="'
+	num_bits_timestamp = 17
+	ts_index = s.find(time_stamp)
+	if(ts_index != -1):
+		ts_index += len(time_stamp)
+		return s[ts_index:ts_index+num_bits_timestamp]
+	else:
+		return -1
+
+
 
 def parse_LiveImage(s):
 	live_image = 'Bits="'
