@@ -37,8 +37,6 @@ def parse_TimeStamp(s):
 	else:
 		return -1
 
-
-
 def parse_LiveImage(s):
 	live_image = 'Bits="'
 	lv_index = s.find(live_image)
