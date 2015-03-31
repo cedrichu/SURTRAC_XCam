@@ -34,20 +34,19 @@ while 1:
         data = residule_header + data
         residule_header = ''
     
-    data_size = len(data)
-    index = 0
+    data_size, index = len(data), 0
+    
     while data_size != 0:
         
         XML_size =  parse_XCam.parse_XCamheader(data[index:index+hsize])
         if XML_size == -1:
             break
-        data_size -= hsize
-        index += hsize
-
+        
+        data_size, index = data_size-hsize, index+hsize
+        
         if data_size >= XML_size:
                 XML_message = data[index:index+XML_size]
-                data_size -= XML_size
-                index += XML_size
+                data_size, index = data_size - XML_size , index + XML_size
                 
                 if data_size < hsize and data_size > 0:
                     logging.debug('residule 1 data_size: ' + str(data_size))
@@ -58,12 +57,12 @@ while 1:
                 rest_XML_size = XML_size - len(XML_message)
                 while (rest_XML_size != 0):
                         data = client_socket.recv(buf_size)
-                        data_size = len(data)
-                        index = 0
+                        
+                        data_size, index = len(data), 0
+
                         if data_size >= rest_XML_size:
                                 XML_message += data[:rest_XML_size]
-                                data_size -= rest_XML_size
-                                index += rest_XML_size
+                                data_size, index = data_size - rest_XML_size , index + rest_XML_size
                                 rest_XML_size = 0
                                 
                                 if data_size < hsize and data_size > 0:
@@ -73,8 +72,7 @@ while 1:
 
                         else:
                                 XML_message += data[:]
-                                rest_XML_size -= data_size
-                                data_size = 0
+                                rest_XML_size, data_size = rest_XML_size - data_size, 0
 
         logging.debug('parsed_message: '+XML_message)
         
