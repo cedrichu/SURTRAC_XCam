@@ -47,6 +47,15 @@ def parse_LiveImage(s):
 	else:
 		return -1
 
+def parse_OSD(s):
+	osd = 'LiveOSD'
+	osd_index = s.find(osd)
+	if(osd_index != -1):
+		return 1
+	else:
+		return -1
+
+
 def output_image(s):
 	output_data = base64.b64decode(s)
 	array = np.frombuffer(output_data, dtype='uint8')
