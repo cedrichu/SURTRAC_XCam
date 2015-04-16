@@ -7,7 +7,7 @@ import numpy as np
 
 
 #Client parameters
-SERVER_IP = '192.168.123.252'
+SERVER_IP = 'surtrac.wv.cs.cmu.edu'
 SERVER_PORT = 20800
 STARTLIVE_FILE = 'StartLive'
 buf_size = 512
@@ -80,11 +80,12 @@ while 1:
         logging.debug('parsed_message: '+XML_message)
         parsed_message = xc.parse_LiveImage(XML_message)
         if(parsed_message != -1):
-            image_file.write(XML_message+'\n\n')
+            image_file.write(XML_message+'\n')
             img = xc.output_image(parsed_message)   
             if OSD_imported == True:
                 cv2.putText(img,str(statebits_timestamp), (30,45), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255))
                 for i in range(num_polygons):
+                    #print i
                     if statebits[i] == '0':
                         cv2.polylines(img, np.int32([points[i]]), 1, (0,0,255), 1)
                     else:
