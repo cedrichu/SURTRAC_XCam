@@ -38,6 +38,7 @@ residule_header = ''
 fourcc = cv2.cv.CV_FOURCC('D','I','V','X')
 output_video = cv2.VideoWriter(VIDEO_FILE,fourcc, 10.0, (320, 240))
 OSD_imported = False
+num_polygons = 9
 
 while 1:
     client_socket.send(input_data)
@@ -97,7 +98,7 @@ while 1:
             if cv2.waitKey(1) & 0xFF == ord('q'):
                 break
        
-        parsed_message = xc.parse_StateVector(XML_message)
+        parsed_message = xc.parse_StateVector(XML_message, num_polygons)
         if(parsed_message != -1):
             statebits_timestamp = parsed_message[:parsed_message.find(' ')]
             statebits = parsed_message[parsed_message.find(' ')+1:-1]
