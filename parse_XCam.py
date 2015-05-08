@@ -17,7 +17,7 @@ def parse_XCamheader(s):
 
 def parse_StateVector(s):
 	state_vector = '<StateVector>'
-	num_bits_StateVector = 7
+	num_bits_StateVector = 9
 
 	sv_index = s.find(state_vector)
 	ts_return = parse_TimeStamp(s)

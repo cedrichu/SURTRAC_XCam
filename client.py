@@ -7,16 +7,18 @@ import numpy as np
 
 
 #Client parameters
-SERVER_IP = 'surtrac.wv.cs.cmu.edu'
+#SERVER_IP = 'surtrac.wv.cs.cmu.edu'
+SERVER_IP = '192.168.100.2'
 SERVER_PORT = 20800
 STARTLIVE_FILE = 'StartLive'
 buf_size = 512
 hsize = 4
 #Output files
-VIDEO_FILE = 'output_video.avi'
-STATEVECTOR_FILE = 'state_vector.log'
-IMAGE_FILE = 'image.log'
-POLYGONS_FILE = 'osd.xml'
+output_filename = 'two_user_2_'
+VIDEO_FILE = output_filename+'output_video.avi'
+STATEVECTOR_FILE = output_filename+'state_vector.log'
+IMAGE_FILE = output_filename+'image.log'
+POLYGONS_FILE = output_filename+'osd.xml'
 
 logging.basicConfig(filename='debug.log',level=logging.INFO)
 client_socket = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
