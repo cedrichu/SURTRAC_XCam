@@ -14,7 +14,7 @@ STARTLIVE_FILE = 'StartLive'
 buf_size = 512
 hsize = 4
 #Output files
-output_filename = 'two_user_2_'
+output_filename = 'three_users_4_'
 VIDEO_FILE = output_filename+'output_video.avi'
 STATEVECTOR_FILE = output_filename+'state_vector.log'
 IMAGE_FILE = output_filename+'image.log'
