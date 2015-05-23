@@ -23,26 +23,11 @@ def main(options):
 	fo2 = open(filename+'_bits_diff.log','w')
 	video_filename = filename+'_new_video.avi'
 
-	init_coord = 110
-	step = 40
-	num_grid = 3
-
-	x_coord = range(init_coord,init_coord+step*(num_grid+1),step)
-	y_coord = range(init_coord,init_coord+step*(num_grid+1),step)
-	#x_coord = range(110,270,40)
-	#y_coord = range(120,280,40)
-	
-	x_size = num_grid
-	y_size = num_grid
-	points = [[[] for j in range(y_size)] for i in range(x_size)]
-	
-	for i in range(x_size):
-	 	for j in range(y_size):
-	 		points[i][j].append([x_coord[i],y_coord[j]])
-	 		points[i][j].append([x_coord[i],y_coord[j+1]])
-	 		points[i][j].append([x_coord[i+1],y_coord[j+1]])
-	 		points[i][j].append([x_coord[i+1],y_coord[j]])
-	points = np.array(points)
+	init_x_coord, init_y_coord  = 110, 110
+	x_step, y_step = 40, 40
+	num_x_grid, num_y_grid = 3, 3
+	grid = cb.Grid(init_x_coord, init_y_coord, num_x_grid, num_y_grid, x_step, y_step)
+	points = grid.create_points()
 	enter_boundary = [0,3,6]
 	leave_boundary = [2,5,8]
 
@@ -52,15 +37,16 @@ def main(options):
 	output_video = cv2.VideoWriter(video_filename,fourcc, 10.0, (320, 240))
 	Threshold = 100
 	Time_Gap = 1000
-	prev_bits = np.zeros(x_size * y_size, dtype=bool)
+	prev_bits = np.zeros(num_x_grid * num_y_grid, dtype=bool)
 	prev_timestamp = '0'
 	
 	count = 0
 	track = None
-	
 	window_size = 5
-	window_bins = {}
-	window_queue = Queue.Queue(window_size)
+	stable_window = cb.StableWindow(window_size)
+
+	x_coord = grid.x_coords()
+	y_coord = grid.y_coords() 
 
 	for frame_num, line in enumerate(fi):
 		message = xc.parse_LiveImage(line)
@@ -69,35 +55,20 @@ def main(options):
 		img = fgbg.apply(raw_img)
 
 		show_img = raw_img.copy()
-		bits = np.zeros(x_size * y_size, dtype=bool)
-		for i in range(x_size):
-			for j in range(y_size):
-				area = img[y_coord[j]:y_coord[j+1], x_coord[i]:x_coord[i+1]]
-				#cv2.putText(show_img,str(i)+str(j), (x_coord[i],y_coord[j]), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255))
+		bits = np.zeros(num_x_grid * num_y_grid, dtype=bool)
+		for i in range(num_x_grid):
+			for j in range(num_y_grid):
+				area = grid.segment_image(img,i,j)
 				if int(np.sum(area)/255) > Threshold:
 					cv2.polylines(show_img, np.int32([points[i][j]]), 1, (255,255,0), 5)
-					bits[x_size*i + j] = 1
+					bits[num_x_grid*i + j] = 1
 				else:
 					cv2.polylines(show_img, np.int32([points[i][j]]), 1, (255,255,0), 1)
 		
 		bit_string = cb.bits_to_string(bits)
-		#fo.write(timestamp+' '+bit_string+'\n')
-
-		#grid signal filter
-		window_queue.put(bit_string)
-		if not bit_string in window_bins:
-			window_bins[bit_string] = 1
-		else:
-			window_bins[bit_string] += 1
-		if window_queue.qsize() == window_size:
-		 	sorted_window_bins = sorted(window_bins.items(), key=operator.itemgetter(1), reverse=True)
-		 	tail = window_queue.get()
-		 	window_bins[tail] -= 1
-		 	if window_bins[tail] == 0:
-		 		window_bins.pop(tail)
-		 	#print timestamp, sorted_window_bins
-		 	cb.string_to_bits(sorted_window_bins[0][0], bits)
-		
+		output_bit_string = stable_window.filter_stable_samples(bit_string)
+		if output_bit_string:
+			cb.string_to_bits(output_bit_string, bits)
 		bit_string = cb.bits_to_string(bits)
 		fo.write(timestamp+' '+bit_string+'\n')
 		 	
@@ -116,17 +87,17 @@ def main(options):
 			#update track
 			if track:
 				temp_grids = []
-				for g1 in cb.adjacent_grids(track[0]):
+				for g1 in grid.adjacent_grids(track[0]):
 					if diff_bits[g1] == 1:
 					#if bits[g1] == True:
 						temp_grids.append(g1)
-						for g2 in cb.adjacent_grids(g1):
+						for g2 in grid.adjacent_grids(g1):
 							if diff_bits[g2] == 1 and not g2 in temp_grids:
 							#if bits[g2] == True:
 								temp_grids.append(g2)
 				#print timestamp, track[0], track[1], temp_grids
-				track[0] = cb.update_track(track[1], diff_bits[track[0]], temp_grids, x_coord, y_coord)
-				track[1] = cb.calc_midpoint(track[0], x_coord, y_coord)
+				track[0] = cb.update_track(track[1], diff_bits[track[0]], temp_grids, x_coord, y_coord, grid)
+				track[1] = grid.mid_points(track[0])
 				#print timestamp, track[0], temp_grids
 				for lb in leave_boundary: 
 					if track[0] == lb:
@@ -140,19 +111,19 @@ def main(options):
 				for eg in enter_grids:
 					if not track:
 				 		count += 1
-						track = [eg, cb.calc_midpoint(eg, x_coord,y_coord)]
+						track = [eg, grid.mid_points(eg)]
 						#print 'hush'
 					else:
 						#print 'haha', track[0]
-						if not cb.is_adjacent(track[0], eg):
-							track = [eg, cb.calc_midpoint(eg, x_coord,y_coord)]
+						if not grid.is_adjacent_in_boundary(track[0], eg):
+							track = [eg, grid.mid_points(eg)]
 							count += 1
 							#print 'hush1'
 							#break
 						else:
 							temp_grids = [eg]
-							track[0] = cb.update_track(track[1], diff_bits[track[0]], temp_grids, x_coord, y_coord)
-							track[1] = cb.calc_midpoint(track[0], x_coord, y_coord)
+							track[0] = cb.update_track(track[1], diff_bits[track[0]], temp_grids, x_coord, y_coord, grid)
+							track[1] = grid.mid_points(track[0])
 							#print 'hush2'
 					#print timestamp, track[0]
 
@@ -167,7 +138,7 @@ def main(options):
 			prev_timestamp = timestamp
 
 		if track:
-			drawx, drawy = cb.id_to_coord(track[0])
+			drawx, drawy = grid.id_to_coord(track[0])
 			cv2.polylines(show_img, np.int32([points[drawx][drawy]]), 1, (255,125,0), 5)
 		
 		cv2.putText(show_img,'EnterZone: '+str(count), (30,60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255))
