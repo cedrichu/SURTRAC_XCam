@@ -85,7 +85,6 @@ def main(options):
 			enter_grids = cb.detect_enter_boundary(diff_bits, enter_boundary)
 			leave_grids = cb.detect_leave_boundary(diff_bits, leave_boundary)
 			
-			#if track.grid_id != None and track.coord != []:
 			if track.is_tracked():
 				temp_grids = []
 				for g1 in grid.adjacent_grids(track.grid_id):
@@ -99,7 +98,6 @@ def main(options):
 				#print timestamp, 'after', track.grid_id, track.coord
 				for lb in leave_boundary: 
 					if track.grid_id == lb:
-						#track.grid_id, track.coord = None, []
 						track.init_track()
 						break
 
@@ -107,13 +105,16 @@ def main(options):
 			if enter_grids:
 				#count += 1
 				for eg in enter_grids:
-					#if track.grid_id == None and track.coord == []:
 					if not track.is_tracked():
 				 		count += 1
 						track.grid_id, track.coord = eg, list(grid.mid_points[eg])
+						#track.grid_id = eg
+						#track.coord = [grid.mid_points[eg][0]]#, grid.mid_points[eg][1]]
 					else:
 						if not grid.is_adjacent_in_boundary(track.grid_id, eg):
 							track.grid_id, track.coord = eg, list(grid.mid_points[eg])
+							#track.grid_id = eg
+							#track.coord = grid.mid_points[eg][0], grid.mid_points[eg][1]
 							count += 1
 						else:
 							track.update_track(diff_bits, [eg])
@@ -122,14 +123,12 @@ def main(options):
 			#	count -= 1				
 			if not sum(bits):
 				count = 0
-				#track.grid_id, track.coord = None, []
 				track.init_track()
 
 			fo2.write(timestamp+' '+bit_string+' ['+str(count)+'] '+str(prev_bits.astype(int))+'\n')
 			prev_bits = bits
 			prev_timestamp = timestamp
 
-		#if track.grid_id != None and track.coord != []:
 		if track.is_tracked():
 			drawx, drawy = grid.id_to_coord(track.grid_id)
 			cv2.polylines(show_img, np.int32([points[drawx][drawy]]), 1, (255,125,0), 5)

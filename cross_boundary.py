@@ -124,18 +124,21 @@ class Track:
 		return self._coord
 	@grid.setter
 	def grid(self, grid):
+		print 'haha'
 		self._grid = grid
 	@grid_id.setter
 	def grid_id(self ,id):
+		print 'haha1'
 		self._grid_id = id
 	@coord.setter
 	def coord(self, x, y):
+		print 'haha'
 		self._coord.append(x)
 		self._coord.append(y)
 		
 	def update_track(self, diff_bits, subseq_grid):
 
-		g = self.grid
+		g = self._grid
 		if diff_bits[self.grid_id] == -1 and subseq_grid:
 			#print 'inside', diff_bits[self.grid_id], self.grid_id, subseq_grid
 			self.coord = list(g.mid_points[subseq_grid[0]])
@@ -207,33 +210,3 @@ def string_to_bits(bit_string, bits):
 			bits[i] = True
 		else:
 			bits[i] = False
-
-
-
-
-# def update_track(track_point, diff_bit, subseq_grid, x_coord, y_coord, grid):
-	
-# 	if diff_bit == -1 and subseq_grid:
-# 		#print diff_bit, subseq_grid
-# 		track_point = grid.mid_points(subseq_grid[0])
-# 		del subseq_grid[0]
-
-# 	for sg in subseq_grid:
-# 		x,y = grid.mid_points(sg)
-# 		track_point[0] = (float(track_point[0])+x)/2
-# 		track_point[1] = (float(track_point[1])+y)/2
-
-# 	x_size = len(x_coord)-1
-# 	y_size = len(y_coord)-1
-	
-# 	for i in range(x_size):
-# 		if x_coord[i] <= track_point[0] < x_coord[i+1]:
-# 			x = i
-# 			break
-# 	for j in range(y_size):
-# 		if y_coord[j] <= track_point[1] < y_coord[j+1]:
-# 			y = j
-# 			break
-
-# 	return x*y_size+y
-
