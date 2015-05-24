@@ -28,10 +28,12 @@ def main(options):
 	num_x_grid, num_y_grid = 3, 3
 	grid = cb.Grid(init_x_coord, init_y_coord, num_x_grid, num_y_grid, x_step, y_step)
 	points = grid.create_points()
-	enter_boundary = [0,3,6]
-	leave_boundary = [2,5,8]
+	enter_level = 0
+	leave_level = 2
+	enter_boundary = (np.array(range(num_x_grid))*num_y_grid + enter_level).tolist()# [0,3,6]
+	leave_boundary = (np.array(range(num_x_grid))*num_y_grid + leave_level).tolist()# [2,5,8]
 
-	
+
 	fgbg = cv2.BackgroundSubtractorMOG2(-1, 200, True)
 	#fgbg = cv2.BackgroundSubtractorMOG()
 	fourcc = cv2.cv.CV_FOURCC('D','I','V','X')
@@ -61,7 +63,7 @@ def main(options):
 				area = grid.segment_image(img,i,j)
 				if int(np.sum(area)/255) > Threshold:
 					cv2.polylines(show_img, np.int32([points[i][j]]), 1, (255,255,0), 5)
-					bits[num_x_grid*i + j] = 1
+					bits[num_y_grid*i + j] = 1
 				else:
 					cv2.polylines(show_img, np.int32([points[i][j]]), 1, (255,255,0), 1)
 		
@@ -93,9 +95,7 @@ def main(options):
 						for g2 in grid.adjacent_grids(g1):
 							if diff_bits[g2] == 1 and not g2 in temp_grids:
 								temp_grids.append(g2)
-				#print timestamp, track.grid_id, track.coord, temp_grids
 				track.update_track(diff_bits, temp_grids)
-				#print timestamp, 'after', track.grid_id, track.coord
 				for lb in leave_boundary: 
 					if track.grid_id == lb:
 						track.init_track()
@@ -103,18 +103,14 @@ def main(options):
 
 			#Update pedestrian counts
 			if enter_grids:
-				#count += 1
 				for eg in enter_grids:
+					#count += 1
 					if not track.is_tracked():
 				 		count += 1
 						track.grid_id, track.coord = eg, list(grid.mid_points[eg])
-						#track.grid_id = eg
-						#track.coord = [grid.mid_points[eg][0]]#, grid.mid_points[eg][1]]
 					else:
 						if not grid.is_adjacent_in_boundary(track.grid_id, eg):
 							track.grid_id, track.coord = eg, list(grid.mid_points[eg])
-							#track.grid_id = eg
-							#track.coord = grid.mid_points[eg][0], grid.mid_points[eg][1]
 							count += 1
 						else:
 							track.update_track(diff_bits, [eg])
