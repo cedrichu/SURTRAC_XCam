@@ -39,16 +39,21 @@ class Grid:
 		self._y_coord = range(init_y_coord,init_y_coord+y_step*(num_y_grid+1),y_step)
 		self._mid_points = self.init_mid_points()
 
-	#@property
-	def mid_points(self, id):
-		return self._mid_points[id]
-
-	#@property
-	def x_coords(self):
+	@property
+	def mid_points(self):
+		return self._mid_points
+	@property
+	def x_coord(self):
 		return self._x_coord
-	#@property
-	def y_coords(self):
+	@property
+	def y_coord(self):
 		return self._y_coord
+	@property
+	def num_x_grid(self):
+		return self._num_x_grid
+	@property
+	def num_y_grid(self):
+		return self._num_y_grid
 
 	def create_points(self):
 		points = [[[] for j in range(self._num_y_grid)] for i in range(self._num_x_grid)]
@@ -100,30 +105,58 @@ class Grid:
 
 		return adjacent
 	
-	# def adjacent_grids(self, id):
-	# 	adjacent_list = [[1,3],[2,4],[5],[0,4,6],[1,5,7],[2,8],[3,7],[4,8],[5]]
-	# 	for i, adj in enumerate(adjacent_list):
-	# 		if id == i:
-	# 			return adj
+	
 
+class Track:
+	def __init__(self, grid):
+		self._grid_id = None
+		self._coord = []
+		self._grid = grid
 
+	@property
+	def grid(self):
+		return self._grid
+	@property
+	def grid_id(self):
+		return self._grid_id
+	@property
+	def coord(self):
+		return self._coord
+	@grid.setter
+	def grid(self, grid):
+		self._grid = grid
+	@grid_id.setter
+	def grid_id(self ,id):
+		self._grid_id = id
+	@coord.setter
+	def coord(self, x, y):
+		self._coord.append(x)
+		self._coord.append(y)
 
+	def update_track(self, diff_bits, subseq_grid):
+		g = self.grid
+		if diff_bits[self.grid_id] == -1 and subseq_grid:
+			#print diff_bit, subseq_grid
+			self._coord = g.mid_points[subseq_grid[0]]
+			del subseq_grid[0]
 
+		for sg in subseq_grid:
+			x,y = g.mid_points[sg]
+			self.coord[0] = (float(self.coord[0])+x)/2
+			self.coord[1] = (float(self.coord[1])+y)/2
 
-# def calc_midpoint(id, x_coord, y_coord):
-# 	coord = id_to_coord(id)
-# 	x = (float(x_coord[coord[0]])+ float(x_coord[coord[0]+1]))/2
-# 	y = (float(y_coord[coord[1]])+ float(y_coord[coord[1]+1]))/2
-# 	return [x,y]
+		
+		for i in range(g.num_x_grid):
+			if g.x_coord[i] <= self.coord[0] < g.x_coord[i+1]:
+				x = i
+				break
+		for j in range(g.num_y_grid):
+			if g.y_coord[j] <= self.coord[1] < g.y_coord[j+1]:
+				y = j
+				break
 
-# #TODO when changing grids
-# def id_to_coord(id):
-# 	return id/3, id-3*(id/3)
-
-
-
-
-
+		self.grid_id = x*g.num_y_grid+y
+		
 
 
 
@@ -167,29 +200,32 @@ def string_to_bits(bit_string, bits):
 		else:
 			bits[i] = False
 
-def update_track(track_point, diff_bit, subseq_grid, x_coord, y_coord, grid):
+
+
+
+# def update_track(track_point, diff_bit, subseq_grid, x_coord, y_coord, grid):
 	
-	if diff_bit == -1 and subseq_grid:
-		#print diff_bit, subseq_grid
-		track_point = grid.mid_points(subseq_grid[0])
-		del subseq_grid[0]
+# 	if diff_bit == -1 and subseq_grid:
+# 		#print diff_bit, subseq_grid
+# 		track_point = grid.mid_points(subseq_grid[0])
+# 		del subseq_grid[0]
 
-	for sg in subseq_grid:
-		x,y = grid.mid_points(sg)
-		track_point[0] = (float(track_point[0])+x)/2
-		track_point[1] = (float(track_point[1])+y)/2
+# 	for sg in subseq_grid:
+# 		x,y = grid.mid_points(sg)
+# 		track_point[0] = (float(track_point[0])+x)/2
+# 		track_point[1] = (float(track_point[1])+y)/2
 
-	x_size = len(x_coord)-1
-	y_size = len(y_coord)-1
+# 	x_size = len(x_coord)-1
+# 	y_size = len(y_coord)-1
 	
-	for i in range(x_size):
-		if x_coord[i] <= track_point[0] < x_coord[i+1]:
-			x = i
-			break
-	for j in range(y_size):
-		if y_coord[j] <= track_point[1] < y_coord[j+1]:
-			y = j
-			break
+# 	for i in range(x_size):
+# 		if x_coord[i] <= track_point[0] < x_coord[i+1]:
+# 			x = i
+# 			break
+# 	for j in range(y_size):
+# 		if y_coord[j] <= track_point[1] < y_coord[j+1]:
+# 			y = j
+# 			break
 
-	return x*y_size+y
+# 	return x*y_size+y
 
