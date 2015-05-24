@@ -132,12 +132,14 @@ class Track:
 	def coord(self, x, y):
 		self._coord.append(x)
 		self._coord.append(y)
-
+		
 	def update_track(self, diff_bits, subseq_grid):
+
 		g = self.grid
 		if diff_bits[self.grid_id] == -1 and subseq_grid:
-			#print diff_bit, subseq_grid
-			self._coord = list(g.mid_points[subseq_grid[0]])
+			#print 'inside', diff_bits[self.grid_id], self.grid_id, subseq_grid
+			self.coord = list(g.mid_points[subseq_grid[0]])
+			#print self.coord
 			del subseq_grid[0]
 
 		for sg in subseq_grid:
@@ -145,7 +147,7 @@ class Track:
 			self.coord[0] = (float(self.coord[0])+x)/2
 			self.coord[1] = (float(self.coord[1])+y)/2
 
-		
+		#print 'ohno', self.coord, g.x_coord, g.y_coord 
 		for i in range(g.num_x_grid):
 			if g.x_coord[i] <= self.coord[0] < g.x_coord[i+1]:
 				x = i
@@ -156,9 +158,15 @@ class Track:
 				break
 
 		self.grid_id = x*g.num_y_grid+y
-		
+		#print 'oops',self.grid_id, x, y
+		self.coord = list(g.mid_points[self.grid_id])
 
+	def is_tracked(self):
+		return self.grid_id != None and self.coord != []
 
+	def init_track(self):
+		self.grid_id = None 
+		self.coord = []
 
 
 def detect_enter_boundary(diff_list, enter_boundary):
