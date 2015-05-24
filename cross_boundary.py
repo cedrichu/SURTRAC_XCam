@@ -75,7 +75,7 @@ class Grid:
 			coord = self.id_to_coord(id)
 			x = (float(self._x_coord[coord[0]])+ float(self._x_coord[coord[0]+1]))/2
 			y = (float(self._y_coord[coord[1]])+ float(self._y_coord[coord[1]+1]))/2
-			mid_points.append([x,y])
+			mid_points.append((x,y))
 		return mid_points
 
 	def id_to_coord(self, id):
@@ -137,11 +137,11 @@ class Track:
 		g = self.grid
 		if diff_bits[self.grid_id] == -1 and subseq_grid:
 			#print diff_bit, subseq_grid
-			self._coord = g.mid_points[subseq_grid[0]]
+			self._coord = list(g.mid_points[subseq_grid[0]])
 			del subseq_grid[0]
 
 		for sg in subseq_grid:
-			x,y = g.mid_points[sg]
+			x,y = list(g.mid_points[sg])
 			self.coord[0] = (float(self.coord[0])+x)/2
 			self.coord[1] = (float(self.coord[1])+y)/2
 

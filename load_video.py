@@ -42,14 +42,11 @@ def main(options):
 	prev_timestamp = '0'
 	
 	count = 0
-	#track = None
 	track = cb.Track(grid)
-
 	window_size = 5
+	window_bins = {}
+	window_queue = Queue.Queue(window_size)
 	stable_window = cb.StableWindow(window_size)
-
-	#x_coord = grid.x_coord
-	#y_coord = grid.y_coord 
 
 	for frame_num, line in enumerate(fi):
 		message = xc.parse_LiveImage(line)
@@ -69,10 +66,10 @@ def main(options):
 					cv2.polylines(show_img, np.int32([points[i][j]]), 1, (255,255,0), 1)
 		
 		bit_string = cb.bits_to_string(bits)
-		# output_bit_string = stable_window.filter_stable_samples(bit_string)
-		# if output_bit_string:
-		# 	cb.string_to_bits(output_bit_string, bits)
-		# bit_string = cb.bits_to_string(bits)
+		output_bit_string = stable_window.filter_stable_samples(bit_string)
+		if output_bit_string:
+			cb.string_to_bits(output_bit_string, bits)
+			bit_string = cb.bits_to_string(bits)
 		fo.write(timestamp+' '+bit_string+'\n')
 		 	
 		diff_bits = bits ^ prev_bits
@@ -87,21 +84,16 @@ def main(options):
 			
 			enter_grids = cb.detect_enter_boundary(diff_bits, enter_boundary)
 			leave_grids = cb.detect_leave_boundary(diff_bits, leave_boundary)
-			#update track
-			if track.grid_id and track.coord:
+			
+			if track.grid_id != None and track.coord != []:
 				temp_grids = []
 				for g1 in grid.adjacent_grids(track.grid_id):
 					if diff_bits[g1] == 1:
-					#if bits[g1] == True:
 						temp_grids.append(g1)
 						for g2 in grid.adjacent_grids(g1):
 							if diff_bits[g2] == 1 and not g2 in temp_grids:
-							#if bits[g2] == True:
 								temp_grids.append(g2)
-				#print timestamp, track[0], track[1], temp_grids
 				track.update_track(diff_bits, temp_grids)
-				track.coord = grid.mid_points[track.grid_id]
-				#print timestamp, track[0], temp_grids
 				for lb in leave_boundary: 
 					if track.grid_id == lb:
 						track.grid_id, track.coord = None, []
@@ -109,26 +101,18 @@ def main(options):
 
 			#Update pedestrian counts
 			if enter_grids:
-				#print enter_grids
 				#count += 1
 				for eg in enter_grids:
-					if not track.grid_id and not track.coord:
+					if track.grid_id == None and track.coord == []:
 				 		count += 1
-						track.grid_id, track.coord = eg, grid.mid_points[eg]
-						#print 'hush'
+						track.grid_id, track.coord = eg, list(grid.mid_points[eg])
 					else:
-						#print 'haha', track[0]
 						if not grid.is_adjacent_in_boundary(track.grid_id, eg):
-							track.grid_id, track.coord = eg, grid.mid_points[eg]
+							track.grid_id, track.coord = eg, list(grid.mid_points[eg])
 							count += 1
-							#print 'hush1'
-							#break
 						else:
 							track.update_track(diff_bits, [eg])
-							track.coord = grid.mid_points[track.grid_id]
-							#print 'hush2'
-					#print timestamp, track[0]
-
+							
 			#if leave_grids:
 			#	count -= 1				
 			if not sum(bits):
@@ -139,9 +123,9 @@ def main(options):
 			prev_bits = bits
 			prev_timestamp = timestamp
 
-		if track.grid_id and track.coord:
-			drawx, drawy = grid.id_to_coord(track.grid_id)
-			cv2.polylines(show_img, np.int32([points[drawx][drawy]]), 1, (255,125,0), 5)
+		# if track.grid_id != None and track.coord != []:
+		# 	drawx, drawy = grid.id_to_coord(track.grid_id)
+		# 	cv2.polylines(show_img, np.int32([points[drawx][drawy]]), 1, (255,125,0), 5)
 		
 		cv2.putText(show_img,'EnterZone: '+str(count), (30,60), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255))
 		cv2.putText(show_img,str(timestamp), (30,45), cv2.FONT_HERSHEY_SIMPLEX, 0.6, (0,0,255))
