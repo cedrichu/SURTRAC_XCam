@@ -88,19 +88,12 @@ def main(options):
 			leave_grids = cb.detect_leave_boundary(diff_bits, leave_boundary)
 			
 			if track.is_tracked():
-				temp_grids = []
-				for g1 in grid.adjacent_grids(track.grid_id):
-					if diff_bits[g1] == 1:
-						temp_grids.append(g1)
-						for g2 in grid.adjacent_grids(g1):
-							if diff_bits[g2] == 1 and not g2 in temp_grids:
-								temp_grids.append(g2)
+				temp_grids = track.track_grid(diff_bits)
 				track.update_track(diff_bits, temp_grids)
 				for lb in leave_boundary: 
 					if track.grid_id == lb:
 						track.init_track()
 						break
-
 			#Update pedestrian counts
 			if enter_grids:
 				for eg in enter_grids:

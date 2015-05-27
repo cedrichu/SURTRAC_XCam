@@ -124,20 +124,26 @@ class Track:
 		return self._coord
 	@grid.setter
 	def grid(self, grid):
-		print 'haha'
 		self._grid = grid
 	@grid_id.setter
 	def grid_id(self ,id):
-		print 'haha1'
 		self._grid_id = id
 	@coord.setter
 	def coord(self, x, y):
-		print 'haha'
 		self._coord.append(x)
 		self._coord.append(y)
-		
-	def update_track(self, diff_bits, subseq_grid):
+	
+	def track_grid(self, diff_bits):
+		temp_grids = []
+		for g1 in self._grid.adjacent_grids(self.grid_id):
+			if diff_bits[g1] == 1:
+				temp_grids.append(g1)
+				for g2 in self._grid.adjacent_grids(g1):
+					if diff_bits[g2] == 1 and not g2 in temp_grids:
+						temp_grids.append(g2)
+		return temp_grids
 
+	def update_track(self, diff_bits, subseq_grid):
 		g = self._grid
 		if diff_bits[self.grid_id] == -1 and subseq_grid:
 			self.coord = list(g.mid_points[subseq_grid[0]])
