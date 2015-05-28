@@ -140,7 +140,12 @@ class Track:
 				temp_grids.append(g1)
 				for g2 in self._grid.adjacent_grids(g1):
 					if diff_bits[g2] == 1 and not g2 in temp_grids:
-						temp_grids.append(g2)
+						for g3 in self._grid.adjacent_grids(g2):
+							if diff_bits[g3] == -1:
+								break
+						else:
+							return [g2]
+
 		return temp_grids
 
 	def update_track(self, diff_bits, subseq_grid):

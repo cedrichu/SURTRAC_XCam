@@ -101,10 +101,14 @@ def main(options):
 					if not track.is_tracked():
 				 		count += 1
 						track.grid_id, track.coord = eg, list(grid.mid_points[eg])
+						#temp_grids = track.track_grid(diff_bits)
+						#track.update_track(diff_bits, temp_grids)
 					else:
 						if not grid.is_adjacent_in_boundary(track.grid_id, eg):
-							track.grid_id, track.coord = eg, list(grid.mid_points[eg])
 							count += 1
+							track.grid_id, track.coord = eg, list(grid.mid_points[eg])
+							#temp_grids = track.track_grid(diff_bits)
+							#track.update_track(diff_bits, temp_grids)
 						else:
 							track.update_track(diff_bits, [eg])
 							
