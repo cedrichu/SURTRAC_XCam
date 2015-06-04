@@ -27,7 +27,7 @@ class StableWindow:
 
 		return None
 
-class Grid:
+class Grid(object):
 	def __init__(self, init_x_coord, init_y_coord, num_x_grid, num_y_grid, x_step, y_step):
 		self._init_x_coord = init_x_coord
 		self._init_y_coord = init_y_coord
@@ -107,7 +107,7 @@ class Grid:
 	
 	
 
-class Track:
+class Track(object):
 	def __init__(self, grid):
 		self._grid_id = None
 		self._coord = []
@@ -129,9 +129,8 @@ class Track:
 	def grid_id(self ,id):
 		self._grid_id = id
 	@coord.setter
-	def coord(self, x, y):
-		self._coord.append(x)
-		self._coord.append(y)
+	def coord(self, coord):
+		self._coord = coord
 	
 	def track_grid(self, diff_bits):
 		temp_grids = []
@@ -150,33 +149,33 @@ class Track:
 
 	def update_track(self, diff_bits, subseq_grid):
 		g = self._grid
-		if diff_bits[self.grid_id] == -1 and subseq_grid:
-			self.coord = list(g.mid_points[subseq_grid[0]])
+		if diff_bits[self._grid_id] == -1 and subseq_grid:
+			self._coord = list(g.mid_points[subseq_grid[0]])
 			del subseq_grid[0]
 
 		for sg in subseq_grid:
 			x,y = list(g.mid_points[sg])
-			self.coord[0] = (float(self.coord[0])+x)/2
-			self.coord[1] = (float(self.coord[1])+y)/2
+			self._coord[0] = (float(self._coord[0])+x)/2
+			self._coord[1] = (float(self._coord[1])+y)/2
 
 		for i in range(g.num_x_grid):
-			if g.x_coord[i] <= self.coord[0] < g.x_coord[i+1]:
+			if g.x_coord[i] <= self._coord[0] < g.x_coord[i+1]:
 				x = i
 				break
 		for j in range(g.num_y_grid):
-			if g.y_coord[j] <= self.coord[1] < g.y_coord[j+1]:
+			if g.y_coord[j] <= self._coord[1] < g.y_coord[j+1]:
 				y = j
 				break
 
-		self.grid_id = x*g.num_y_grid+y
-		self.coord = list(g.mid_points[self.grid_id])
+		self._grid_id = x*g.num_y_grid+y
+		self._coord = list(g.mid_points[self._grid_id])
 
 	def is_tracked(self):
-		return self.grid_id != None and self.coord != []
+		return self._grid_id != None and self._coord != []
 
 	def init_track(self):
-		self.grid_id = None 
-		self.coord = []
+		self._grid_id = None 
+		self._coord = []
 
 
 def detect_enter_boundary(diff_list, enter_boundary):
